@@ -143,7 +143,8 @@ export async function handleRequest(req: ApiRequest): Promise<ApiResponse> {
 
 		checkDemoBody(req);
 		const repos = getRepos();
-		await ensureSeeded(repos);
+		// Health checks the database itself (and says what's wrong), so it runs before the seed.
+		if (req.path !== "/api/health") await ensureSeeded(repos);
 		return await route.handler(req, repos, route.params);
 	} catch (error) {
 		if (error instanceof HttpError) return { status: error.status, body: { error: error.message, details: error.details } };

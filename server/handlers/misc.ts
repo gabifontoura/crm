@@ -3,11 +3,31 @@ import { badRequest, forbidden, notFound, objectBody, ok, str, type ApiRequest }
 import { demoCap, isDemo, resetDemo } from "../lib/demo.js";
 import { currentUser, requireAdmin } from "../lib/session.js";
 import type { Repos } from "../repos/types.js";
+import { ensureSeeded } from "../repos/index.js";
 
 /* ------------------------------- Health --------------------------------- */
 
+/**
+ * Is the API up, and can it use its database? Each step reports its own
+ * error (e.g. a missing table or a wrong key) — never the keys themselves.
+ */
 export async function health(_req: ApiRequest, repos: Repos) {
-	return ok({ ok: true, storage: repos.kind, persistent: repos.persistent, demo: isDemo(), time: new Date().toISOString() });
+	const base = { storage: repos.kind, persistent: repos.persistent, demo: isDemo(), time: new Date().toISOString() };
+	const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
+	try {
+		await repos.settings.get("seed_version");
+	} catch (e) {
+		return {
+			status: 503,
+			body: { ok: false, ...base, database: message(e), hint: "Check SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY, and that supabase/setup.sql was run in the SQL Editor." },
+		};
+	}
+	try {
+		await ensureSeeded(repos);
+	} catch (e) {
+		return { status: 503, body: { ok: false, ...base, database: "ok", seed: message(e), hint: "The tables are there but the demo data couldn't be written: run the latest supabase/setup.sql again." } };
+	}
+	return ok({ ok: true, ...base, database: "ok", seed: "ok" });
 }
 
 /* ------------------------------ Settings -------------------------------- */
