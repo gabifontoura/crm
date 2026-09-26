@@ -341,6 +341,17 @@ function supabaseKeyValue(db: SupabaseClient): KeyValue {
 			const { error } = await db.from("app_settings").delete().not("key", "is", null);
 			if (error) fail("app_settings", "delete", error);
 		},
+		async claim(key, value) {
+			const { error } = await db.from("app_settings").insert({ key, value, updated_at: new Date().toISOString() });
+			// 23505: the key exists (someone else holds it).
+			if (error?.code === "23505") return false;
+			if (error) fail("app_settings", "insert", error);
+			return true;
+		},
+		async remove(key) {
+			const { error } = await db.from("app_settings").delete().eq("key", key);
+			if (error) fail("app_settings", "delete", error);
+		},
 	};
 }
 

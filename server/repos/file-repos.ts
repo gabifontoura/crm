@@ -124,6 +124,22 @@ function fileKeyValue(): KeyValue {
 		async clear() {
 			await serialized(file(), async () => writeMap(file(), {}));
 		},
+		claim(key, value) {
+			return serialized(file(), async () => {
+				const map = await readMap<unknown>(file());
+				if (key in map && map[key] !== null) return false;
+				map[key] = value;
+				await writeMap(file(), map);
+				return true;
+			});
+		},
+		async remove(key) {
+			await serialized(file(), async () => {
+				const map = await readMap<unknown>(file());
+				delete map[key];
+				await writeMap(file(), map);
+			});
+		},
 	};
 }
 

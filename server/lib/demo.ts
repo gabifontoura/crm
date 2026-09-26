@@ -1,5 +1,5 @@
 import { SEED_USERS } from "../../shared/users.js";
-import { ensureSeeded } from "../repos/index.js";
+import { ensureSeeded, wipeTables } from "../repos/index.js";
 import type { Collection, Repos } from "../repos/types.js";
 import { HttpError, type ApiRequest } from "./http.js";
 
@@ -60,29 +60,10 @@ export function checkDemoBody(req: ApiRequest) {
 	if (size > DEMO_MAX_BODY) throw new HttpError(413, "In the demo, uploads are limited to about 3 MB at a time. Try a smaller photo.");
 }
 
-/** Dependents first, so Postgres' foreign keys allow each delete. */
-const WIPE_ORDER: (keyof Repos)[] = [
-	"billing",
-	"ticketActivity",
-	"events",
-	"tickets",
-	"contacts",
-	"dashboards",
-	"reports",
-	"ticketTypes",
-	"workflows",
-	"units",
-	"blocks",
-	"developments",
-	"clients",
-	"releases",
-	"users",
-];
-
 /** Everything back to the demo data, dated around today. */
 export async function resetDemo(repos: Repos) {
 	const started = Date.now();
-	for (const table of WIPE_ORDER) await (repos[table] as Collection<{ id: string | number }>).clear();
+	await wipeTables(repos);
 	await repos.settings.clear();
 	await ensureSeeded(repos);
 	return { ok: true, seconds: Math.round((Date.now() - started) / 100) / 10 };

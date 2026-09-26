@@ -35,6 +35,9 @@ export interface KeyValue {
 	set(key: string, value: unknown): Promise<void>;
 	/** Deletes every setting (the demo's daily reset). */
 	clear(): Promise<void>;
+	/** Sets the key only if it doesn't exist yet; true if this call set it (a lock). */
+	claim(key: string, value: unknown): Promise<boolean>;
+	remove(key: string): Promise<void>;
 }
 
 export interface Repos {
