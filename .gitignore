@@ -1,0 +1,17 @@
+node_modules
+dist
+dist-ssr
+*.local
+*.tsbuildinfo
+.vite
+
+# Local API storage and secrets
+.data
+.env
+.env.*
+!.env.example
+.vercel
+
+# Local tooling
+.tanstack
+.claude/settings.local.json

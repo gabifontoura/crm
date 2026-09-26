@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  /* Brand accent shared by the menu and the calendar. */
+  --color-brand: var(--brand);
+
+  /* Inputs, selects and text areas: a touch lighter than the page. */
+  --color-field: var(--field);
+  /* A quiet panel inside a card. */
+  --color-subtle: var(--subtle);
+
+  /* One corner size for cards, buttons and inputs (8px); small marks keep 4px. */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: var(--radius);
+  --radius-lg: var(--radius);
+  --radius-xl: var(--radius);
+  --radius-2xl: var(--radius);
+}
+
+:root {
+  --radius: 8px;
+
+  --background: #f4f6fb;
+  --foreground: #1a2433;
+
+  --card: #ffffff;
+  --card-foreground: #1a2433;
+  --popover: #ffffff;
+  --popover-foreground: #1a2433;
+
+  --primary: #2b6cb0;
+  --primary-foreground: #ffffff;
+  --secondary: #eef2f8;
+  --secondary-foreground: #1a2433;
+  --muted: #eef2f8;
+  --muted-foreground: #64748b;
+  --accent: #eef2f8;
+  --accent-foreground: #1a2433;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #2b6cb0;
+
+  --brand: #2b6cb0;
+
+  --field: #ffffff;
+  --subtle: #f8fafc;
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+}
+
+/* Animates Accordion open/close (Radix exposes the content height as
+   `--radix-accordion-content-height`). */
+@keyframes accordion-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+.animate-accordion-down {
+  animation: accordion-down 0.2s ease-out;
+}
+.animate-accordion-up {
+  animation: accordion-up 0.2s ease-out;
+}
