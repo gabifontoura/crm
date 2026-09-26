@@ -60,8 +60,11 @@ export function ensureSeeded(r: Repos): Promise<void> {
 }
 
 const SEED_LOCK = "seed_lock";
-/** A lock older than this was left by a run that died (timeout): it can be taken over. */
-const STALE_LOCK_MS = 3 * 60_000;
+/**
+ * A lock older than this was left by a run that died: it can be taken over.
+ * Longer than a function may run on Vercel (maxDuration 300 s in vercel.json).
+ */
+const STALE_LOCK_MS = 6 * 60_000;
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
 async function takeSeedLock(r: Repos): Promise<boolean> {
