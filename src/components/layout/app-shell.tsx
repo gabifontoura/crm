@@ -1,4 +1,4 @@
-import { ListIcon, SidebarSimpleIcon } from "@phosphor-icons/react"
+import { ListIcon } from "@phosphor-icons/react"
 import { useRouterState } from "@tanstack/react-router"
 import { type ReactNode, useEffect, useState } from "react"
 
@@ -13,7 +13,6 @@ import { canOpen, homeFor } from "../../../shared/access"
 import { DemoBanner } from "./demo-banner"
 
 const LS_COLLAPSED = "crm.sidebarCollapsed.v1"
-const LS_HIDDEN = "crm.sidebarHidden.v1"
 
 function readFlag(key: string): boolean {
   try {
@@ -34,8 +33,6 @@ function writeFlag(key: string, on: boolean) {
 /** App frame: menu on the left, scrolling page content on the right. */
 export function AppShell({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(() => readFlag(LS_COLLAPSED))
-  // Desktop only: the whole menu is out of the way (phones always use the drawer).
-  const [hidden, setHidden] = useState(() => readFlag(LS_HIDDEN))
   const [mobileOpen, setMobileOpen] = useState(false)
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   const { user } = useSession()
@@ -44,16 +41,15 @@ export function AppShell({ children }: { children: ReactNode }) {
   const home = user && access ? homeFor(user, access) : null
 
   useEffect(() => writeFlag(LS_COLLAPSED, collapsed), [collapsed])
-  useEffect(() => writeFlag(LS_HIDDEN, hidden), [hidden])
 
-  // Ctrl+B (Cmd+B on Mac) shows or hides the menu, except while typing.
+  // Ctrl+B (Cmd+B on Mac) collapses or expands the menu (on phones: opens the drawer), except while typing.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key.toLowerCase() !== "b" || !(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey) return
       const el = e.target as HTMLElement | null
       if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return
       e.preventDefault()
-      if (window.matchMedia("(min-width: 768px)").matches) setHidden((v) => !v)
+      if (window.matchMedia("(min-width: 768px)").matches) setCollapsed((v) => !v)
       else setMobileOpen((v) => !v)
     }
     document.addEventListener("keydown", onKey)
@@ -75,13 +71,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex h-dvh w-full overflow-hidden bg-background print:block print:h-auto print:overflow-visible print:bg-white">
-      <aside className={cn("hidden h-full shrink-0 print:hidden", !hidden && "md:block")}>
-        <AppSidebar
-          collapsed={collapsed}
-          onToggleCollapsed={() => setCollapsed((v) => !v)}
-          onOpenMenu={() => setMobileOpen(true)}
-          onHide={() => setHidden(true)}
-        />
+      {/* Desktop: the menu collapses to icons (top button or Ctrl+B); only phones hide it, behind the drawer. */}
+      <aside className="hidden h-full shrink-0 md:block print:hidden">
+        <AppSidebar collapsed={collapsed} onToggleCollapsed={() => setCollapsed((v) => !v)} />
       </aside>
 
       <div
@@ -106,15 +98,14 @@ export function AppShell({ children }: { children: ReactNode }) {
           onNavigate={() => setMobileOpen(false)}
           onPin={() => {
             setCollapsed(false)
-            setHidden(false)
             setMobileOpen(false)
           }}
         />
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        {/* Top bar: always on phones; on desktop only while the menu is hidden. */}
-        <div className={cn("flex h-12 shrink-0 items-center gap-2 border-border border-b bg-card px-3 print:hidden", !hidden && "md:hidden")}>
+        {/* Top bar: phones only (the menu is in the drawer). */}
+        <div className="flex h-12 shrink-0 items-center gap-2 border-border border-b bg-card px-3 md:hidden print:hidden">
           <button
             type="button"
             onClick={() => setMobileOpen(true)}
@@ -122,15 +113,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             aria-label="Open menu"
           >
             <ListIcon className="size-5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => setHidden(false)}
-            className="hidden rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground md:block"
-            aria-label="Show menu"
-            title="Show menu (Ctrl+B)"
-          >
-            <SidebarSimpleIcon className="size-5" />
           </button>
           <div className="flex size-6 items-center justify-center rounded bg-brand font-bold text-[11px] text-white">C</div>
           <span className="font-semibold text-sm">CRM</span>

@@ -1,4 +1,4 @@
-import { CaretDoubleLeftIcon, CaretDoubleRightIcon, ListIcon, PushPinIcon, SidebarSimpleIcon, XIcon } from "@phosphor-icons/react"
+import { PushPinIcon, SidebarSimpleIcon, XIcon } from "@phosphor-icons/react"
 import { Link } from "@tanstack/react-router"
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -15,12 +15,8 @@ interface AppSidebarProps {
   /** Mobile drawer mode: always expanded, with a close button. */
   mobile?: boolean
   onNavigate?: () => void
-  /** Collapsed rail: opens the full menu (with labels) as a drawer. */
-  onOpenMenu?: () => void
   /** Drawer on desktop: keep the full menu docked instead. */
   onPin?: () => void
-  /** Desktop: hide the menu completely (brought back from the top bar or Ctrl+B). */
-  onHide?: () => void
 }
 
 /**
@@ -28,7 +24,7 @@ interface AppSidebarProps {
  * uppercase section labels like the calendar legend, and a colored left
  * border on the active item like the appointment cards.
  */
-export function AppSidebar({ collapsed, onToggleCollapsed, mobile, onNavigate, onOpenMenu, onPin, onHide }: AppSidebarProps) {
+export function AppSidebar({ collapsed, onToggleCollapsed, mobile, onNavigate, onPin }: AppSidebarProps) {
   const compact = collapsed && !mobile
   // Each access sees the screens an administrator picked (Settings > Menu by access).
   const { user } = useSession()
@@ -45,16 +41,16 @@ export function AppSidebar({ collapsed, onToggleCollapsed, mobile, onNavigate, o
       )}
     >
       <div className={cn("flex h-14 shrink-0 items-center gap-2 border-border border-b", compact ? "justify-center px-2" : "px-4")}>
-        {compact && onOpenMenu ? (
-          <button
-            type="button"
-            onClick={onOpenMenu}
-            className="flex size-9 items-center justify-center rounded-md text-foreground/80 hover:bg-muted"
-            aria-label="Show menu with labels"
-            title="Show menu"
-          >
-            <ListIcon className="size-5" />
-          </button>
+        {compact ? (
+        	<button
+        		type="button"
+        		onClick={onToggleCollapsed}
+        		className="flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+        		aria-label="Expand menu"
+        		title="Expand menu (Ctrl+B)"
+        	>
+        		<SidebarSimpleIcon className="size-4" />
+        	</button>
         ) : (
           <Link to="/" onClick={onNavigate} aria-label="Home" title="Home" className="flex size-8 shrink-0 items-center justify-center rounded-md bg-brand font-bold text-sm text-white">
             C
@@ -66,16 +62,16 @@ export function AppSidebar({ collapsed, onToggleCollapsed, mobile, onNavigate, o
             <div className="truncate text-[11px] text-muted-foreground">Construction & property</div>
           </div>
         )}
-        {!compact && !mobile && onHide && (
-          <button
-            type="button"
-            onClick={onHide}
-            className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
-            aria-label="Hide menu"
-            title="Hide menu (Ctrl+B)"
-          >
-            <SidebarSimpleIcon className="size-4" />
-          </button>
+        {!compact && !mobile && (
+        	<button
+        		type="button"
+        		onClick={onToggleCollapsed}
+        		className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+        		aria-label="Collapse menu"
+        		title="Collapse menu (Ctrl+B)"
+        	>
+        		<SidebarSimpleIcon className="size-4" />
+        	</button>
         )}
         {mobile && (
           <button
@@ -132,31 +128,7 @@ export function AppSidebar({ collapsed, onToggleCollapsed, mobile, onNavigate, o
             <span>Keep menu open</span>
           </button>
         )}
-        {!mobile && (
-          <button
-            type="button"
-            onClick={onToggleCollapsed}
-            className={cn(
-              "mt-2 flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-muted-foreground text-xs hover:bg-muted",
-              compact && "justify-center"
-            )}
-            aria-label={compact ? "Expand menu" : "Collapse menu"}
-          >
-            {compact ? <CaretDoubleRightIcon className="size-4" /> : <CaretDoubleLeftIcon className="size-4" />}
-            {!compact && <span>Collapse</span>}
-          </button>
-        )}
-        {compact && onHide && (
-          <button
-            type="button"
-            onClick={onHide}
-            className="mt-1 flex w-full justify-center rounded-lg px-2 py-1.5 text-muted-foreground hover:bg-muted"
-            aria-label="Hide menu"
-            title="Hide menu (Ctrl+B)"
-          >
-            <SidebarSimpleIcon className="size-4" />
-          </button>
-        )}
+
       </div>
     </nav>
   )
@@ -172,7 +144,7 @@ function SidebarItem({
   onNavigate?: () => void
 }) {
   const base = cn(
-    "group flex h-9 w-full items-center gap-2.5 rounded-lg border-l-4 border-transparent text-sm transition-colors",
+    "group flex h-9 w-full items-center gap-2.5 rounded-lg text-sm transition-colors",
     compact ? "justify-center px-0" : "px-2.5"
   )
   const content = (
@@ -193,7 +165,7 @@ function SidebarItem({
         to={item.to}
         onClick={onNavigate}
         className={cn(base, "text-foreground/80 hover:bg-muted hover:text-foreground")}
-        activeProps={{ className: "!border-brand bg-brand/10 !text-brand font-semibold hover:!bg-brand/10" }}
+        activeProps={{ className: "bg-brand/10 !text-brand font-medium hover:!bg-brand/15" }}
       >
         {content}
       </Link>
