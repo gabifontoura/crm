@@ -345,8 +345,14 @@ function supabaseKeyValue(db: SupabaseClient): KeyValue {
 }
 
 export function supabaseConfig(): { url: string; key: string } | null {
-	const url = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
-	const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+	const raw = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
+	const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+	// Just the project's address: pasted with "/rest/v1", a slash or spaces, the client would ask for a wrong path.
+	const url = raw
+		?.trim()
+		.replace(/\/+$/, "")
+		.replace(/\/(rest|auth|storage)\/v1$/, "")
+		.replace(/\/+$/, "");
 	return url && key ? { url, key } : null;
 }
 
