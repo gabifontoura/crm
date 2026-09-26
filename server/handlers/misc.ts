@@ -104,15 +104,13 @@ export async function saveRelease(req: ApiRequest, repos: Repos) {
 /* --------------------------------- Demo --------------------------------- */
 
 /**
- * Back to the demo data (DEMO_MODE only): daily from Vercel Cron (with
- * CRON_SECRET) or by an administrator.
+ * Back to the demo data (DEMO_MODE only). Only Vercel Cron can call it (it
+ * sends CRON_SECRET): users on the demo pick who they are, so "an
+ * administrator" can't be trusted here, and each reset wipes everything.
  */
 export async function resetDemoNow(req: ApiRequest, repos: Repos) {
 	if (!isDemo()) forbidden("The reset only exists in demo mode (DEMO_MODE=true).");
 	const secret = process.env.CRON_SECRET;
-	if (!(secret && String(req.headers.authorization ?? "") === `Bearer ${secret}`)) {
-		const me = await currentUser(req, repos);
-		if (me.role !== "admin") forbidden("Only administrators reset the demo.");
-	}
+	if (!secret || String(req.headers.authorization ?? "") !== `Bearer ${secret}`) forbidden("The demo resets itself every night.");
 	return ok(await resetDemo(repos));
 }
