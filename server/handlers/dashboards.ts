@@ -4,6 +4,7 @@ import { badRequest, created, forbidden, noContent, notFound, objectBody, ok, st
 import { currentUser } from "../lib/session.js";
 import { requireAction } from "../lib/access.js";
 import type { Repos } from "../repos/types.js";
+import { demoCap } from "../lib/demo.js";
 
 /**
  * Dashboards: everyone builds their own; shared ones are visible to the whole
@@ -46,6 +47,7 @@ export async function listDashboards(req: ApiRequest, repos: Repos) {
 }
 
 export async function createDashboard(req: ApiRequest, repos: Repos) {
+	await demoCap(repos, "dashboards");
 	const me = await currentUser(req, repos);
 	await requireAction(repos, me, "dashboards.edit");
 	const now = new Date().toISOString();

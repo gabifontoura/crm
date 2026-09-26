@@ -26,6 +26,7 @@ import {
 } from "../lib/http.js";
 import { currentUser, requireAdmin } from "../lib/session.js";
 import type { Repos } from "../repos/types.js";
+import { demoCap } from "../lib/demo.js";
 
 const newId = (prefix: string) => `${prefix}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
 
@@ -62,6 +63,7 @@ export async function listClients(req: ApiRequest, repos: Repos) {
 }
 
 export async function createClient(req: ApiRequest, repos: Repos) {
+	await demoCap(repos, "clients");
 	requireAdmin(await currentUser(req, repos));
 	const body = objectBody(req);
 	const name = str(body.name).trim();
@@ -178,6 +180,7 @@ export async function getDevelopment(req: ApiRequest, repos: Repos, params: { id
 }
 
 export async function createDevelopment(req: ApiRequest, repos: Repos) {
+	await demoCap(repos, "developments");
 	requireAdmin(await currentUser(req, repos));
 	const input = readDevelopment(objectBody(req));
 	if (input.clientId && !(await repos.clients.get(input.clientId))) badRequest("Client not found.", { clientId: "Client not found." });
@@ -237,6 +240,7 @@ async function unlinkEvents(
 /* -------------------------------- Blocks -------------------------------- */
 
 export async function createBlock(req: ApiRequest, repos: Repos) {
+	await demoCap(repos, "blocks");
 	requireAdmin(await currentUser(req, repos));
 	const body = objectBody(req);
 	const developmentId = str(body.developmentId);
@@ -332,6 +336,7 @@ function readUnit(body: Record<string, unknown>, current?: Unit): Omit<Unit, "id
 }
 
 export async function createUnit(req: ApiRequest, repos: Repos) {
+	await demoCap(repos, "units");
 	requireAdmin(await currentUser(req, repos));
 	const body = objectBody(req);
 	const blockId = str(body.blockId);

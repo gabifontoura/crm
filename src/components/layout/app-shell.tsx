@@ -10,6 +10,7 @@ import { LockSimpleIcon } from "@phosphor-icons/react"
 import { useSession } from "@/lib/auth/session"
 import { useMenuAccess } from "@/lib/auth/use-menu-access"
 import { canOpen, homeFor } from "../../../shared/access"
+import { DemoBanner } from "./demo-banner"
 
 const LS_COLLAPSED = "crm.sidebarCollapsed.v1"
 const LS_HIDDEN = "crm.sidebarHidden.v1"
@@ -134,6 +135,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="flex size-6 items-center justify-center rounded bg-brand font-bold text-[11px] text-white">C</div>
           <span className="font-semibold text-sm">CRM</span>
         </div>
+        <DemoBanner />
         <main className="min-h-0 flex-1 overflow-y-auto print:overflow-visible">
           <PersonProvider>
             {blocked ? (

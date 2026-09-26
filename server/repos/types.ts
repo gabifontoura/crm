@@ -26,11 +26,15 @@ export interface Collection<T extends { id: Id }> {
 	seed(docs: T[]): Promise<void>;
 	update(id: T["id"], doc: T): Promise<T | null>;
 	remove(id: T["id"]): Promise<boolean>;
+	/** Deletes every row (the demo's daily reset). */
+	clear(): Promise<void>;
 }
 
 export interface KeyValue {
 	get<T>(key: string): Promise<T | null>;
 	set(key: string, value: unknown): Promise<void>;
+	/** Deletes every setting (the demo's daily reset). */
+	clear(): Promise<void>;
 }
 
 export interface Repos {

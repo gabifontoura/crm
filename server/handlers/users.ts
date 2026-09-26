@@ -3,6 +3,7 @@ import { type User, type UserInput, USER_ROLES, validateUserInput } from "../../
 import { badRequest, bool, conflict, created, noContent, notFound, objectBody, ok, str, type ApiRequest } from "../lib/http.js";
 import { currentUser, requireAdmin } from "../lib/session.js";
 import type { Repos } from "../repos/types.js";
+import { demoCap, protectDemoUser } from "../lib/demo.js";
 
 function readInput(body: Record<string, unknown>, current?: User): UserInput {
 	const role = str(body.role, current?.role ?? "technician");
@@ -49,6 +50,7 @@ export async function getMe(req: ApiRequest, repos: Repos) {
 }
 
 export async function createUser(req: ApiRequest, repos: Repos) {
+	await demoCap(repos, "users");
 	requireAdmin(await currentUser(req, repos));
 	const input = await applyAccess(repos, readInput(objectBody(req)));
 	const errors = validateUserInput(input);
@@ -65,6 +67,9 @@ export async function updateUser(req: ApiRequest, repos: Repos, params: { id: st
 	const existing = await repos.users.get(params.id);
 	if (!existing) notFound("Team member");
 	const input = await applyAccess(repos, readInput(objectBody(req), existing));
+	// In the demo, the people you sign in as keep their access (so nobody locks the demo).
+	if (existing.active && !input.active) protectDemoUser(existing.id, "deactivate");
+	if (input.role !== existing.role || (input.accessId ?? null) !== (existing.accessId ?? null)) protectDemoUser(existing.id, "change access");
 	const errors = validateUserInput(input);
 	if (Object.keys(errors).length) badRequest("Please fix the highlighted fields.", errors);
 	await assertUniqueEmail(repos, input.email, existing.id);
@@ -81,6 +86,7 @@ export async function deleteUser(req: ApiRequest, repos: Repos, params: { id: st
 	const me = await currentUser(req, repos);
 	requireAdmin(me);
 	if (me.id === params.id) conflict("You can't delete yourself.");
+	protectDemoUser(params.id, "delete");
 	const existing = await repos.users.get(params.id);
 	if (!existing) notFound("Team member");
 	const assigned = (await repos.events.list()).filter((e) => e.ownerId === existing.id).length;

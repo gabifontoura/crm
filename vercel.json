@@ -17,6 +17,15 @@
     {
       "path": "/api/billing/automations/run",
       "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/demo/reset",
+      "schedule": "0 3 * * *"
     }
-  ]
+  ],
+  "functions": {
+    "api/index.ts": {
+      "maxDuration": 60
+    }
+  }
 }

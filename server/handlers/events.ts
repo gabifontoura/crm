@@ -18,6 +18,7 @@ import { currentUser } from "../lib/session.js";
 import type { Repos, StoredEvent } from "../repos/types.js";
 import { requireAction } from "../lib/access.js";
 import { ensureVisitTicket } from "./visit-tickets.js";
+import { demoCap } from "../lib/demo.js";
 
 const MODES = ["on_site", "remote", "hybrid"];
 
@@ -164,6 +165,7 @@ export async function listEvents(req: ApiRequest, repos: Repos) {
 }
 
 export async function createEvent(req: ApiRequest, repos: Repos) {
+	await demoCap(repos, "events");
 	const me = await currentUser(req, repos);
 	await requireAction(repos, me, "calendar.create");
 	const body = objectBody(req);

@@ -67,6 +67,11 @@ function supabaseCollection<T extends { id: string | number }>(db: SupabaseClien
 			if (error) fail(m.table, "delete", error);
 			return (data?.length ?? 0) > 0;
 		},
+		async clear() {
+			// PostgREST needs a filter to delete: every row has an id.
+			const { error } = await db.from(m.table).delete().not("id", "is", null);
+			if (error) fail(m.table, "delete", error);
+		},
 	};
 }
 
@@ -331,6 +336,10 @@ function supabaseKeyValue(db: SupabaseClient): KeyValue {
 		async set(key, value) {
 			const { error } = await db.from("app_settings").upsert({ key, value, updated_at: new Date().toISOString() });
 			if (error) fail("app_settings", "upsert", error);
+		},
+		async clear() {
+			const { error } = await db.from("app_settings").delete().not("key", "is", null);
+			if (error) fail("app_settings", "delete", error);
 		},
 	};
 }

@@ -3,6 +3,7 @@ import type { User } from "../../shared/users.js";
 import { badRequest, created, forbidden, noContent, notFound, objectBody, ok, type ApiRequest } from "../lib/http.js";
 import { currentUser } from "../lib/session.js";
 import type { Repos } from "../repos/types.js";
+import { demoCap } from "../lib/demo.js";
 
 /**
  * Saved reports: everyone builds their own; shared ones are visible to the
@@ -28,6 +29,7 @@ export async function listReports(req: ApiRequest, repos: Repos) {
 }
 
 export async function createReport(req: ApiRequest, repos: Repos) {
+	await demoCap(repos, "reports");
 	const me = await currentUser(req, repos);
 	const now = new Date().toISOString();
 	const r: Report = { id: newId(), ownerId: me.id, ...read(objectBody(req)), createdAt: now, updatedAt: now };

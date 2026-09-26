@@ -24,6 +24,7 @@ import { logTicketComment, visibleTickets } from "./tickets.js";
 import { sendEmail } from "../lib/mailer.js";
 import { sendText } from "../lib/messaging.js";
 import { soldUnitOf } from "../lib/sold-unit.js";
+import { demoCap } from "../lib/demo.js";
 
 /**
  * Billing: payment plans for deals and the collection cadence. Anyone who
@@ -134,6 +135,7 @@ export async function listBilling(req: ApiRequest, repos: Repos) {
 }
 
 export async function createPlan(req: ApiRequest, repos: Repos) {
+	await demoCap(repos, "billing");
 	const me = await currentUser(req, repos);
 	await requireAction(repos, me, "billing.plan");
 	const body = objectBody(req);

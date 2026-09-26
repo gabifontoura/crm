@@ -100,6 +100,11 @@ function fileCollection<T extends { id: string | number }>(name: string): Collec
 				return existed;
 			});
 		},
+		async clear() {
+			await mutate((map) => {
+				for (const k of Object.keys(map)) delete map[k];
+			});
+		},
 	};
 }
 
@@ -115,6 +120,9 @@ function fileKeyValue(): KeyValue {
 				map[key] = value;
 				await writeMap(file(), map);
 			});
+		},
+		async clear() {
+			await serialized(file(), async () => writeMap(file(), {}));
 		},
 	};
 }

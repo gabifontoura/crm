@@ -13,6 +13,7 @@ import * as users from "./handlers/users.js";
 import { type ApiRequest, type ApiResponse, HttpError } from "./lib/http.js";
 import { ensureSeeded, getRepos } from "./repos/index.js";
 import type { Repos } from "./repos/types.js";
+import { checkDemoBody } from "./lib/demo.js";
 
 /**
  * Every API route. The Vercel function (`api/index.ts`) and the Vite dev
@@ -25,6 +26,9 @@ type Handler = (req: ApiRequest, repos: Repos, params: any) => Promise<ApiRespon
 
 const ROUTES: [method: string, pattern: string, handler: Handler][] = [
 	["GET", "/api/health", misc.health],
+	// Demo only: everything back to the demo data (daily cron or an administrator).
+	["GET", "/api/demo/reset", misc.resetDemoNow],
+	["POST", "/api/demo/reset", misc.resetDemoNow],
 
 	["GET", "/api/me", users.getMe],
 	["GET", "/api/users", users.listUsers],
@@ -137,6 +141,7 @@ export async function handleRequest(req: ApiRequest): Promise<ApiResponse> {
 		const route = candidates.find((r) => r.method === req.method);
 		if (!route) return { status: 405, body: { error: `${req.method} is not allowed on ${req.path}` } };
 
+		checkDemoBody(req);
 		const repos = getRepos();
 		await ensureSeeded(repos);
 		return await route.handler(req, repos, route.params);

@@ -186,7 +186,9 @@ export function ensureSeeded(r: Repos): Promise<void> {
 					if (!ticket) continue;
 					if (!ticket.unitId && ticket.developmentId) {
 						const devBlocks = new Set(blocks.filter((b) => b.developmentId === ticket!.developmentId).map((b) => b.id));
-						const free = units.find((u) => devBlocks.has(u.blockId) && u.status === "available");
+						// An available unit, else one nobody lives in, else any: the demo sale needs a unit.
+						const inDev = units.filter((u) => devBlocks.has(u.blockId));
+						const free = inDev.find((u) => u.status === "available") ?? inDev.find((u) => !u.occupant && u.status !== "sold") ?? inDev.find((u) => u.status !== "sold") ?? inDev[0];
 						if (free) {
 							const block = blocks.find((b) => b.id === free.blockId)!;
 							await r.units.update(free.id, { ...free, status: "sold", occupant: plan.customer.name.split(" (")[0] });

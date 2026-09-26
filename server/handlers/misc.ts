@@ -1,12 +1,13 @@
 import type { ReleaseRecord } from "../../shared/releases.js";
-import { badRequest, notFound, objectBody, ok, str, type ApiRequest } from "../lib/http.js";
+import { badRequest, forbidden, notFound, objectBody, ok, str, type ApiRequest } from "../lib/http.js";
+import { demoCap, isDemo, resetDemo } from "../lib/demo.js";
 import { currentUser, requireAdmin } from "../lib/session.js";
 import type { Repos } from "../repos/types.js";
 
 /* ------------------------------- Health --------------------------------- */
 
 export async function health(_req: ApiRequest, repos: Repos) {
-	return ok({ ok: true, storage: repos.kind, persistent: repos.persistent, time: new Date().toISOString() });
+	return ok({ ok: true, storage: repos.kind, persistent: repos.persistent, demo: isDemo(), time: new Date().toISOString() });
 }
 
 /* ------------------------------ Settings -------------------------------- */
@@ -74,7 +75,24 @@ export async function saveRelease(req: ApiRequest, repos: Repos) {
 		await repos.releases.update(body.id, { ...existing, ...fields, id: body.id });
 		return ok({ success: true, msg: "Release note updated!" });
 	}
+	await demoCap(repos, "releases");
 	const nextId = (await repos.releases.list()).reduce((max, r) => Math.max(max, r.id), 0) + 1;
 	await repos.releases.insert({ id: nextId, ...fields });
 	return ok({ success: true, id: nextId, msg: "Release note created!" });
+}
+
+/* --------------------------------- Demo --------------------------------- */
+
+/**
+ * Back to the demo data (DEMO_MODE only): daily from Vercel Cron (with
+ * CRON_SECRET) or by an administrator.
+ */
+export async function resetDemoNow(req: ApiRequest, repos: Repos) {
+	if (!isDemo()) forbidden("The reset only exists in demo mode (DEMO_MODE=true).");
+	const secret = process.env.CRON_SECRET;
+	if (!(secret && String(req.headers.authorization ?? "") === `Bearer ${secret}`)) {
+		const me = await currentUser(req, repos);
+		if (me.role !== "admin") forbidden("Only administrators reset the demo.");
+	}
+	return ok(await resetDemo(repos));
 }

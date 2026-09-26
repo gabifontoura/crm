@@ -48,6 +48,7 @@ import { askEngineering } from "./engineering.js";
 import { readEvent } from "./events.js";
 import { statusEmailFrom } from "../../shared/status-email.js";
 import { sendStatusEmail } from "../lib/status-email.js";
+import { demoCap } from "../lib/demo.js";
 
 const newId = (prefix: string) => `${prefix}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
@@ -219,6 +220,7 @@ function readWorkflow(body: Record<string, unknown>, current?: Workflow): Omit<W
 }
 
 export async function createWorkflow(req: ApiRequest, repos: Repos) {
+	await demoCap(repos, "workflows");
 	requireAdmin(await currentUser(req, repos));
 	const input = readWorkflow(objectBody(req));
 	const problems = validateWorkflow(input);
@@ -295,6 +297,7 @@ function readTicketType(body: Record<string, unknown>, current?: TicketType): Om
 }
 
 export async function createTicketType(req: ApiRequest, repos: Repos) {
+	await demoCap(repos, "ticketTypes");
 	requireAdmin(await currentUser(req, repos));
 	const input = readTicketType(objectBody(req));
 	const problems = validateTicketType(input, await repos.workflows.list());
@@ -471,6 +474,7 @@ export async function getTicketByNumber(req: ApiRequest, repos: Repos, params: {
 }
 
 export async function createTicket(req: ApiRequest, repos: Repos) {
+	await demoCap(repos, "tickets");
 	const me = await currentUser(req, repos);
 	const body = objectBody(req);
 	await requireAction(repos, me, body.parentId ? "tickets.subtickets" : "tickets.create");

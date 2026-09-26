@@ -14,6 +14,7 @@ import { currentUser } from "../lib/session.js";
 import { requireAction } from "../lib/access.js";
 import { logTicketComment, visibleTickets } from "./tickets.js";
 import type { Repos } from "../repos/types.js";
+import { demoCap } from "../lib/demo.js";
 
 /**
  * Lead portfolios. Everyone works their own portfolio (the contacts they
@@ -109,6 +110,7 @@ export async function getContact(req: ApiRequest, repos: Repos, params: { id: st
 }
 
 export async function createContact(req: ApiRequest, repos: Repos) {
+	await demoCap(repos, "contacts");
 	const me = await currentUser(req, repos);
 	await requireAction(repos, me, "contacts.create");
 	const input = await readContact(repos, me, objectBody(req));
